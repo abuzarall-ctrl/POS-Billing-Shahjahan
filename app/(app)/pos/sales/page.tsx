@@ -1,0 +1,71 @@
+import { getPOSSales } from "../actions"
+import { getStoreSettings } from "../actions"
+import { POSSalesList } from "@/components/pos-sales-list"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { POSSalesFilters } from "@/components/pos-sales-filters"
+import { ExportButtons } from "@/components/export-buttons"
+import { requirePrivilege } from "@/lib/auth/privileges"
+
+interface POSSalesPageProps {
+  searchParams: Promise<{ dateFrom?: string; dateTo?: string }>
+}
+
+function fmtDate(iso: string) {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return "—"
+  return d.toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" })
+}
+
+export default async function POSSalesPage({ searchParams }: POSSalesPageProps) {
+  await requirePrivilege("pos")
+  const params = await searchParams
+  const dateFrom = params.dateFrom
+  const dateTo = params.dateTo
+
+  const [sales, storeSettings] = await Promise.all([
+    getPOSSales(dateFrom, dateTo),
+    getStoreSettings(),
+  ])
+
+  const storeName = storeSettings?.name || "Store"
+
+  return (
+    <div>
+      <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Sales</h1>
+      <p className="text-xs sm:text-sm text-muted-foreground">POS sales list.</p>
+
+      <Card className="mt-4">
+        <CardHeader className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1">
+            <CardTitle className="text-base sm:text-lg">POS Sales</CardTitle>
+          </div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <POSSalesFilters dateFrom={dateFrom} dateTo={dateTo} />
+            <ExportButtons
+              data={sales.map((sale) => ({
+                date: fmtDate(sale.created_at),
+                customer: sale.party?.name || "Walk-in Customer",
+                total: sale.total,
+                status: sale.status,
+              }))}
+              columns={[
+                { key: "date", header: "Date" },
+                { key: "customer", header: "Customer" },
+                { key: "total", header: "Total" },
+                { key: "status", header: "Status" },
+              ]}
+              filename={`pos-sales-${new Date().toISOString().split("T")[0]}`}
+              title="POS Sales Report"
+              printStoreName={storeName}
+              printReportParams={`From Date: ${dateFrom ? fmtDate(dateFrom + "T00:00:00") : "ALL"} AND To Date: ${dateTo ? fmtDate(dateTo + "T00:00:00") : "ALL"} AND Party: ALL`}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <POSSalesList sales={sales} />
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

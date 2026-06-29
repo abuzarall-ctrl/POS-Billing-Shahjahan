@@ -1,0 +1,23 @@
+# Claude Code
+.claude/
+
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build
+tsconfig.tsbuildinfo
+
+# Logs
+*.log
+.dev-server.log
+
+# Playwright
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db
