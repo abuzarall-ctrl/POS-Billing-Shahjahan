@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/pos-billing-shahjahan
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
@@ -136,6 +136,9 @@ jobs:
           envs: GHCR_TOKEN,GHCR_USER,IMAGE,DEPLOY_PATH
           script: |
             set -e
+
+            # Docker image names must be lowercase
+            IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
 
             # Pull latest image from GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
