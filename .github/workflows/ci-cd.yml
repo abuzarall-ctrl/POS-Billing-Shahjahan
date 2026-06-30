@@ -156,8 +156,12 @@ jobs:
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker pull "$IMAGE"
 
-            # Restart the app container using explicit compose file path
-            docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d pos-app
+            # Stop and remove existing containers to free up ports
+            docker stop pos-billing pos-postgres 2>/dev/null || true
+            docker rm pos-billing pos-postgres 2>/dev/null || true
+
+            # Start all services fresh
+            docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d
 
             # Remove dangling images to free disk space
             docker image prune -f
