@@ -55,10 +55,10 @@ export function Header({ businessName, userEmail }: HeaderProps) {
     <header className="bg-card/80 backdrop-blur border-b border-border h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center overflow-hidden shadow-sm bg-white flex-shrink-0">
-          <Image src="/placeholder-logo.png" alt="Logo" width={44} height={44} className="object-contain" />
+          <Image src="/antech-logo.png" alt="AN TECH Solution" width={44} height={44} className="object-contain" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-sm sm:text-lg font-semibold text-foreground leading-snug truncate">{businessName}</h1>
+          <h1 className="text-sm sm:text-lg font-semibold text-foreground leading-snug truncate">AN TECH Solution</h1>
           <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Invoice & Billing System</p>
         </div>
       </div>
