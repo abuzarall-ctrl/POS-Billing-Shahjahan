@@ -132,7 +132,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "docker-compose.yml,.env.production"
+          source: "docker-compose.yml,.env.production,Caddyfile"
           target: ${{ secrets.DEPLOY_PATH }}
 
       - name: Deploy via SSH
@@ -152,18 +152,22 @@ jobs:
           script: |
             set -e
 
-            # Pull latest image from GHCR
+            # Pull latest app image from GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker pull "$IMAGE"
 
-            # Stop and remove existing containers to free up ports
-            docker stop pos-billing pos-postgres 2>/dev/null || true
-            docker rm pos-billing pos-postgres 2>/dev/null || true
+            # Stop Nginx so Caddy can use ports 80/443
+            systemctl stop nginx 2>/dev/null || true
+            systemctl disable nginx 2>/dev/null || true
 
-            # Start all services fresh
+            # Stop and remove existing containers
+            docker stop pos-caddy pos-billing pos-postgres 2>/dev/null || true
+            docker rm pos-caddy pos-billing pos-postgres 2>/dev/null || true
+
+            # Start all services (Caddy + Postgres + App)
             docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d
 
             # Remove dangling images to free disk space
             docker image prune -f
 
-            echo "Deployment complete."
+            echo "Deployment complete — live at https://antechsolution.quadgentics.com"
