@@ -303,11 +303,11 @@ export function Sidebar({ user }: SidebarProps) {
       >
         <div className="h-20 flex items-center gap-3 px-6 border-b border-sidebar-border text-sidebar-foreground/90 bg-gradient-to-r from-sidebar via-sidebar/90 to-sidebar/80">
           <div className="w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm bg-white">
-            <Image src="/placeholder-logo.png" alt="Logo" width={44} height={44} className="object-contain" />
+            <Image src="/antech-logo.png" alt="AN TECH Solution" width={44} height={44} className="object-contain" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">InvoSync</p>
-            <p className="text-[11px] text-sidebar-foreground/70">Invoice & Billing</p>
+            <p className="text-sm font-semibold">AN TECH</p>
+            <p className="text-[11px] text-sidebar-foreground/70">Solution</p>
           </div>
         </div>
         <nav className="pt-5 px-3 space-y-2 pb-4">
