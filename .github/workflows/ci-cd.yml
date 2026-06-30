@@ -120,6 +120,21 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
+      - name: Checkout code
+        if: steps.check.outputs.configured == 'true'
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose and env file to server
+        if: steps.check.outputs.configured == 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "docker-compose.yml,.env.production"
+          target: ${{ secrets.DEPLOY_PATH }}
+
       - name: Deploy via SSH
         if: steps.check.outputs.configured == 'true'
         uses: appleboy/ssh-action@v1
