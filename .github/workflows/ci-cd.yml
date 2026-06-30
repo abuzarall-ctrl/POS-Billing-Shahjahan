@@ -132,7 +132,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "docker-compose.yml,.env.production,Caddyfile,lib/db/schema.sql,lib/db/complete-schema.sql,lib/db/migration-admins.sql,lib/db/seed-admin-user.sql"
+          source: "docker-compose.yml,.env.production,Caddyfile,lib/db"
           target: ${{ secrets.DEPLOY_PATH }}
 
       - name: Deploy via SSH
@@ -167,11 +167,12 @@ jobs:
             # Start all services (Caddy + Postgres + App)
             docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d
 
-            # Wait for postgres to be ready then run schema + seed (safe to re-run)
+            # Wait for postgres to be ready then run all schemas + migrations + seed
             sleep 5
-            docker exec -i pos-postgres psql -U pos_user -d pos_billing < "$DEPLOY_PATH/lib/db/schema.sql" || true
-            docker exec -i pos-postgres psql -U pos_user -d pos_billing < "$DEPLOY_PATH/lib/db/complete-schema.sql" || true
-            docker exec -i pos-postgres psql -U pos_user -d pos_billing < "$DEPLOY_PATH/lib/db/migration-admins.sql" || true
+            docker exec -i pos-postgres psql -U pos_user -d pos_billing < "$DEPLOY_PATH/lib/db/combined-fresh-install.sql" || true
+            for f in "$DEPLOY_PATH"/lib/db/migration-*.sql; do
+              docker exec -i pos-postgres psql -U pos_user -d pos_billing < "$f" || true
+            done
             docker exec -i pos-postgres psql -U pos_user -d pos_billing < "$DEPLOY_PATH/lib/db/seed-admin-user.sql" || true
 
             # Remove dangling images to free disk space
