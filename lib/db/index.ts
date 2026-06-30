@@ -16,8 +16,24 @@ function createConnection() {
   })
 }
 
-// Reuse connection across hot-reloads in dev
-const sql = globalThis._pgSql ?? createConnection()
-if (process.env.NODE_ENV !== "production") globalThis._pgSql = sql
+function getConnection(): ReturnType<typeof postgres> {
+  if (!globalThis._pgSql) {
+    globalThis._pgSql = createConnection()
+  }
+  return globalThis._pgSql!
+}
+
+// Lazy proxy — connection only established on first query, not at import time.
+// This allows the module to be imported during Next.js build without DATABASE_URL.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sql = new Proxy(function () {} as unknown as ReturnType<typeof postgres>, {
+  apply(_target, _thisArg, args) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (getConnection() as any)(...args)
+  },
+  get(_target, prop) {
+    return getConnection()[prop as keyof ReturnType<typeof postgres>]
+  },
+})
 
 export default sql

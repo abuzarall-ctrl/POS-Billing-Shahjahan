@@ -103,8 +103,8 @@ export async function getGrossProfitItems(
   const userId = currentUser.effectiveUserId
 
   try {
-    const invoices = await sql<{ id: string }[]>`
-      SELECT id FROM sales_invoices
+    const invoices = await sql<{ id: string; subtotal: string; discount: string }[]>`
+      SELECT id, subtotal, discount FROM sales_invoices
       WHERE user_id = ${userId}
         AND status = ANY(ARRAY['Paid','Credit','Partial','Pending','Partially Returned'])
         ${from ? sql`AND created_at >= ${from}` : sql``}
@@ -115,7 +115,17 @@ export async function getGrossProfitItems(
 
     const invoiceIds = invoices.map((i) => i.id)
 
+    // ratio = (subtotal - bill_discount) / subtotal distributes the bill-level
+    // discount proportionally across lines (line_total already handles per-line discounts)
+    const invoiceRatioMap = new Map<string, number>()
+    for (const inv of invoices) {
+      const subtotal = Number(inv.subtotal ?? 0)
+      const billDiscount = Number(inv.discount ?? 0)
+      invoiceRatioMap.set(inv.id, subtotal > 0 ? (subtotal - billDiscount) / subtotal : 1)
+    }
+
     const lines = await sql<{
+      invoice_id: string
       item_id: string
       quantity: string
       line_total: string
@@ -125,6 +135,7 @@ export async function getGrossProfitItems(
       category_name: string | null
     }[]>`
       SELECT
+        sil.invoice_id,
         sil.item_id,
         sil.quantity,
         sil.line_total,
@@ -144,7 +155,8 @@ export async function getGrossProfitItems(
     for (const line of lines) {
       const itemId = line.item_id
       const qty = Number(line.quantity ?? 0)
-      const revenue = Number(line.line_total ?? 0)
+      const ratio = invoiceRatioMap.get(line.invoice_id) ?? 1
+      const revenue = Number(line.line_total ?? 0) * ratio
       const itemCategory = line.category_name ?? "Uncategorized"
 
       if (category && category !== "all" && itemCategory !== category) continue
@@ -227,8 +239,8 @@ export async function getGatePassItems(
   const userId = currentUser.effectiveUserId
 
   try {
-    const invoices = await sql<{ id: string }[]>`
-      SELECT id FROM sales_invoices
+    const invoices = await sql<{ id: string; subtotal: string; discount: string }[]>`
+      SELECT id, subtotal, discount FROM sales_invoices
       WHERE user_id = ${userId}
         AND status = ANY(ARRAY['Paid','Credit','Partial','Pending','Partially Returned'])
         ${from ? sql`AND created_at >= ${from}` : sql``}
@@ -239,7 +251,15 @@ export async function getGatePassItems(
 
     const invoiceIds = invoices.map((i) => i.id)
 
+    const invoiceRatioMap = new Map<string, number>()
+    for (const inv of invoices) {
+      const subtotal = Number(inv.subtotal ?? 0)
+      const billDiscount = Number(inv.discount ?? 0)
+      invoiceRatioMap.set(inv.id, subtotal > 0 ? (subtotal - billDiscount) / subtotal : 1)
+    }
+
     const lines = await sql<{
+      invoice_id: string
       item_id: string
       quantity: string
       line_total: string
@@ -249,6 +269,7 @@ export async function getGatePassItems(
       category_name: string | null
     }[]>`
       SELECT
+        sil.invoice_id,
         sil.item_id,
         sil.quantity,
         sil.line_total,
@@ -271,7 +292,8 @@ export async function getGatePassItems(
     for (const line of lines) {
       const itemId = line.item_id
       const qty = Number(line.quantity ?? 0)
-      const revenue = Number(line.line_total ?? 0)
+      const ratio = invoiceRatioMap.get(line.invoice_id) ?? 1
+      const revenue = Number(line.line_total ?? 0) * ratio
       const categoryName = line.category_name ?? "Uncategorized"
 
       if (categoryFilter && categoryFilter !== "all" && categoryName !== categoryFilter) continue

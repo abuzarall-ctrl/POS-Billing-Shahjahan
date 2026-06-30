@@ -536,12 +536,13 @@ export async function bulkImportInventory(
       // If barcode given, try to find existing item
       if (barcode) {
         const existing = await sql`
-          SELECT id FROM inventory_items
+          SELECT id, stock FROM inventory_items
           WHERE user_id = ${userId} AND barcode = ${barcode}
           LIMIT 1
         `
 
         if (existing.length > 0) {
+          const existingItem = existing[0] as { id: string; stock: string }
           try {
             await sql`
               UPDATE inventory_items SET
@@ -558,8 +559,21 @@ export async function bulkImportInventory(
                 stock = ${stock},
                 minimum_stock = ${minimumStock},
                 maximum_stock = ${maximumStock}
-              WHERE id = ${existing[0].id as string}
+              WHERE id = ${existingItem.id}
             `
+            const stockDelta = stock - Number(existingItem.stock ?? 0)
+            if (stockDelta !== 0) {
+              try {
+                await recordStockMovement({
+                  itemId: existingItem.id,
+                  movementType: stockDelta > 0 ? "IN" : "OUT",
+                  quantity: Math.abs(stockDelta),
+                  referenceType: "Adjustment",
+                  notes: `Stock adjusted via CSV import from ${Number(existingItem.stock ?? 0)} to ${stock}`,
+                  userId,
+                })
+              } catch { /* non-fatal */ }
+            }
             updated++
           } catch (e) {
             errors.push(`Row ${rowNum} (${row.name}): ${String(e)}`)
@@ -569,7 +583,7 @@ export async function bulkImportInventory(
       }
 
       try {
-        await sql`
+        const inserted = await sql`
           INSERT INTO inventory_items (
             name, barcode, category_id, unit_id, cost_price, cash_price, credit_price,
             supplier_price, profit_value, profit_percentage, stock, minimum_stock, maximum_stock, user_id
@@ -578,7 +592,20 @@ export async function bulkImportInventory(
             ${creditPrice}, ${supplierPrice}, ${profitValue}, ${profitPercentage},
             ${stock}, ${minimumStock}, ${maximumStock}, ${userId}
           )
+          RETURNING id
         `
+        if (inserted[0] && stock > 0) {
+          try {
+            await recordStockMovement({
+              itemId: (inserted[0] as { id: string }).id,
+              movementType: "IN",
+              quantity: stock,
+              referenceType: "Manual",
+              notes: "Initial stock (CSV import)",
+              userId,
+            })
+          } catch { /* non-fatal */ }
+        }
         imported++
       } catch (e) {
         errors.push(`Row ${rowNum} (${row.name}): ${String(e)}`)

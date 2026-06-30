@@ -132,7 +132,7 @@ export function InventoryPageClient({ items, tab }: { items: InventoryItem[]; ta
   }
 
   const handleDownloadTemplate = () => {
-    const csv = "﻿name,barcode,category,unit,cost_price,cash_price,credit_price,supplier_price,stock,minimum_stock,maximum_stock\nExample Item,BC001,General,PCS,100,120,125,95,50,5,200"
+    const csv = "﻿name,barcode,category,unit,cost_price,cash_price,credit_price,supplier_price,stock,minimum_stock,maximum_stock\nExample Item,BC001,General,PCS,100,120,125,110,50,5,200"
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
