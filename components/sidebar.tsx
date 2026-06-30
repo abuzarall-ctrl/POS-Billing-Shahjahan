@@ -301,7 +301,7 @@ export function Sidebar({ user }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full"
         } fixed top-0 left-0 h-screen z-30 lg:translate-x-0 lg:z-20`}
       >
-        <div className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border text-sidebar-foreground/90 bg-gradient-to-r from-sidebar via-sidebar/90 to-sidebar/80">
+        <div className="h-20 flex items-center justify-center gap-3 px-4 border-b border-sidebar-border text-sidebar-foreground/90 bg-gradient-to-r from-sidebar via-sidebar/90 to-sidebar/80">
           <div className="flex flex-col items-center gap-0.5">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-sm">
               <Image src="/antech-icon.png" alt="AN TECH" width={40} height={40} className="object-contain" />
