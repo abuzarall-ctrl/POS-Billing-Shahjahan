@@ -79,7 +79,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=sha-
             type=raw,value=latest
@@ -126,7 +126,7 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
-          IMAGE: ghcr.io/${{ github.repository }}:latest
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:latest
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -136,9 +136,6 @@ jobs:
           envs: GHCR_TOKEN,GHCR_USER,IMAGE,DEPLOY_PATH
           script: |
             set -e
-
-            # Docker image names must be lowercase
-            IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
 
             # Pull latest image from GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
