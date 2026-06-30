@@ -301,13 +301,19 @@ export function Sidebar({ user }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full"
         } fixed top-0 left-0 h-screen z-30 lg:translate-x-0 lg:z-20`}
       >
-        <div className="h-20 flex items-center gap-3 px-6 border-b border-sidebar-border text-sidebar-foreground/90 bg-gradient-to-r from-sidebar via-sidebar/90 to-sidebar/80">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm bg-white">
-            <Image src="/antech-logo.png" alt="AN TECH Solution" width={44} height={44} className="object-contain" />
+        <div className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border text-sidebar-foreground/90 bg-gradient-to-r from-sidebar via-sidebar/90 to-sidebar/80">
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-sm">
+              <Image src="/antech-icon.png" alt="AN TECH" width={40} height={40} className="object-contain" />
+            </div>
+            <p className="text-[9px] font-semibold leading-none">AN TECH Solution</p>
           </div>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold">AN TECH</p>
-            <p className="text-[11px] text-sidebar-foreground/70">Solution</p>
+          <span className="text-sidebar-foreground/50 font-light text-base">×</span>
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-white shadow-sm">
+              <Image src="/placeholder-logo.png" alt="InvoSync" width={40} height={40} className="object-contain" />
+            </div>
+            <p className="text-[9px] font-semibold leading-none">InvoSync</p>
           </div>
         </div>
         <nav className="pt-5 px-3 space-y-2 pb-4">
