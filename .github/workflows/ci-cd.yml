@@ -154,12 +154,10 @@ jobs:
 
             # Pull latest image from GHCR
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-
             docker pull "$IMAGE"
 
-            # Restart the app container (postgres keeps running)
-            cd "$DEPLOY_PATH"
-            docker compose up -d --no-build pos-app
+            # Restart the app container using explicit compose file path
+            docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d pos-app
 
             # Remove dangling images to free disk space
             docker image prune -f
