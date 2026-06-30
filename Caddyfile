@@ -1,0 +1,3 @@
+antechsolution.quadgentics.com {
+    reverse_proxy pos-app:3000
+}

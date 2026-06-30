@@ -1,4 +1,19 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: pos-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - pos-app
+
   postgres:
     image: postgres:16-alpine
     container_name: pos-postgres
@@ -19,8 +34,6 @@ services:
     image: ghcr.io/abuzarall-ctrl/pos-billing-shahjahan:latest
     container_name: pos-billing
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://pos_user:pos_password@postgres:5432/pos_billing
@@ -32,3 +45,5 @@ services:
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:
