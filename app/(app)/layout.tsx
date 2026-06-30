@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import type { ReactNode } from "react"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"

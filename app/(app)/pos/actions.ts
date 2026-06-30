@@ -649,6 +649,25 @@ export async function deletePOSDraft(invoiceId: string) {
   return { error: null }
 }
 
+export async function getOrCreateWalkInParty(): Promise<{ id: string }> {
+  const currentUser = await getSessionOrRedirect()
+  const userId = currentUser.effectiveUserId
+
+  const [existing] = await sql<{ id: string }[]>`
+    SELECT id FROM parties
+    WHERE name = 'Walk-in Customer' AND type = 'Customer' AND user_id = ${userId}
+    LIMIT 1
+  `
+  if (existing) return { id: existing.id }
+
+  const [created] = await sql<{ id: string }[]>`
+    INSERT INTO parties (name, type, user_id)
+    VALUES ('Walk-in Customer', 'Customer', ${userId})
+    RETURNING id
+  `
+  return { id: created.id }
+}
+
 export async function quickCreateCustomer(payload: { name: string; phone?: string; address?: string }) {
   const currentUser = await getSessionOrRedirect()
 
